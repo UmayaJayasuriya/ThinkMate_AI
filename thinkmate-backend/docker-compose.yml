@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: thinkmate_backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - postgres
+      - ollama
+    volumes:
+      - uploads_data:/app/uploads
+      - chroma_data:/app/chroma_data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: thinkmate_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: thinkmate_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # NOTE: after first `docker compose up`, run:
+    #   docker exec -it thinkmate_ollama ollama pull llama3.1
+    # (or mistral / qwen2.5) — models aren't bundled in the image.
+
+volumes:
+  postgres_data:
+  ollama_data:
+  uploads_data:
+  chroma_data:
